@@ -1,0 +1,3 @@
+databaseChangeLog:
+  - include:
+      file: db/migration/company_db.yaml
