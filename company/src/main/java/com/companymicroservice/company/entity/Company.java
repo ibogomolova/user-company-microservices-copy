@@ -7,6 +7,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import java.math.BigDecimal;
+import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
 
@@ -28,6 +29,11 @@ public class Company {
     @Column(nullable = false)
     private BigDecimal budget;
 
+    @ElementCollection
+    @CollectionTable(name = "company_users", joinColumns = @JoinColumn(name = "company_id"))
+    @Column(name = "user_id")
+    private List<UUID> userIds;
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
@@ -35,12 +41,13 @@ public class Company {
         Company company = (Company) o;
         return Objects.equals(id, company.id)
                 && Objects.equals(name, company.name)
-                && Objects.equals(budget, company.budget);
+                && Objects.equals(budget, company.budget)
+                && Objects.equals(userIds, company.userIds);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(id, name, budget);
+        return Objects.hash(id, name, budget, userIds);
     }
 
     @Override
@@ -49,6 +56,7 @@ public class Company {
                 "id=" + id +
                 ", name='" + name + '\'' +
                 ", budget=" + budget +
+                ", userIds=" + userIds +
                 '}';
     }
 }

@@ -14,6 +14,28 @@ databaseChangeLog:
               - column:
                   name: name
                   type: VARCHAR(255)
+                  constraints:
+                    nullable: false
               - column:
                   name: budget
                   type: DECIMAL(15,2)
+                  constraints:
+                    nullable: false
+
+  - changeSet:
+      id: 2
+      author: bogomolova
+      changes:
+        - createTable:
+            tableName: company_users
+            columns:
+              - column:
+                  name: company_id
+                  type: UUID
+                  constraints:
+                    nullable: false
+              - column:
+                  name: user_id
+                  type: UUID
+                  constraints:
+                    nullable: false

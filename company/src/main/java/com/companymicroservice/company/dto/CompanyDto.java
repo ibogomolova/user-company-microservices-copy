@@ -11,5 +11,5 @@ public class CompanyDto {
     private UUID id;
     private String name;
     private BigDecimal budget;
-    private List<UserInfoDto> employees;
+    private List<UserInfoDto> users;
 }
