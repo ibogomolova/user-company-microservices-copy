@@ -10,6 +10,7 @@ import org.mapstruct.Mapping;
 public interface UserMapper {
 
     @Mapping(target = "company", source = "companyInfo")
+    @Mapping(target = "id", source = "user.id")
     UserDto toDto(User user, CompanyInfoDto companyInfo);
 
     User toEntity(UserDto userDto);
