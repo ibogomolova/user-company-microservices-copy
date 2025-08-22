@@ -1,0 +1,64 @@
+services:
+  postgres_company:
+    image: postgres:15
+    container_name: postgres_company
+    environment:
+      POSTGRES_DB: ${COMPANY_M_DB}
+      POSTGRES_USER: ${COMPANY_M_ADMIN}
+      POSTGRES_PASSWORD: ${COMPANY_M_PASSWORD}
+    ports:
+      - "5432:5432"
+    volumes:
+      - company_data:/var/lib/postgresql/data
+
+  postgres_user:
+    image: postgres:15
+    container_name: postgres_user
+    environment:
+      POSTGRES_DB: ${USERS_M_DB}
+      POSTGRES_USER: ${USERS_M_ADMIN}
+      POSTGRES_PASSWORD: ${USERS_M_PASSWORD}
+    ports:
+      - "5433:5432"
+    volumes:
+      - user_data:/var/lib/postgresql/data
+
+  company-service:
+    build: ./company
+    container_name: company_service
+    depends_on:
+      - postgres_company
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres_company:5432/${COMPANY_M_DB}
+      SPRING_DATASOURCE_USERNAME: ${COMPANY_M_ADMIN}
+      SPRING_DATASOURCE_PASSWORD: ${COMPANY_M_PASSWORD}
+    ports:
+      - "8082:8082"
+
+  user-service:
+    build: ./user
+    container_name: user_service
+    depends_on:
+      - postgres_user
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres_user:5432/${USERS_M_DB}
+      SPRING_DATASOURCE_USERNAME: ${USERS_M_ADMIN}
+      SPRING_DATASOURCE_PASSWORD: ${USERS_M_PASSWORD}
+    ports:
+      - "8081:8081"
+
+  gateway-service:
+    build: ./gateway
+    container_name: gateway_service
+    depends_on:
+      - company-service
+      - user-service
+    environment:
+      USER_SERVICE_URL: http://user-service:8081
+      COMPANY_SERVICE_URL: http://company-service:8082
+    ports:
+      - "8080:8080"
+
+volumes:
+  company_data:
+  user_data:
