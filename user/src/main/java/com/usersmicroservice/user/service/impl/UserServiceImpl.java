@@ -1,7 +1,5 @@
 package com.usersmicroservice.user.service.impl;
 
-import com.usersmicroservice.user.client.CompanyClient;
-import com.usersmicroservice.user.dto.CompanyInfoDto;
 import com.usersmicroservice.user.dto.UserDto;
 import com.usersmicroservice.user.entity.User;
 import com.usersmicroservice.user.exception.UserNotFoundException;
@@ -12,30 +10,24 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
+@Transactional
 public class UserServiceImpl implements UserService {
 
     private final UserRepository userRepository;
     private final UserMapper userMapper;
-    private final CompanyClient companyClient;
 
     @Override
     @Transactional
     public UserDto create(UserDto userDto) {
         User user = userMapper.toEntity(userDto);
         User saved = userRepository.save(user);
-
-        CompanyInfoDto company = null;
-        if (saved.getCompanyId() != null) {
-            company = companyClient.getCompanyById(saved.getCompanyId());
-        }
-
-        return userMapper.toDto(saved, company);
+        return userMapper.toDto(saved, null);
     }
 
     @Override
@@ -47,18 +39,10 @@ public class UserServiceImpl implements UserService {
         existing.setFirstName(userDto.getFirstName());
         existing.setLastName(userDto.getLastName());
         existing.setPhone(userDto.getPhone());
-        if (userDto.getCompany() != null) {
-            existing.setCompanyId(userDto.getCompany().getId());
-        }
+        existing.setCompanyId(userDto.getCompany() != null ? userDto.getCompany().getId() : null);
 
         User updated = userRepository.save(existing);
-
-        CompanyInfoDto company = null;
-        if (updated.getCompanyId() != null) {
-            company = companyClient.getCompanyById(updated.getCompanyId());
-        }
-
-        return userMapper.toDto(updated, company);
+        return userMapper.toDto(updated, null);
     }
 
     @Override
@@ -66,28 +50,16 @@ public class UserServiceImpl implements UserService {
     public UserDto getById(UUID id) {
         User user = userRepository.findById(id)
                 .orElseThrow(() -> new UserNotFoundException("User with id " + id + " not found"));
-
-        CompanyInfoDto company = null;
-        if (user.getCompanyId() != null) {
-            company = companyClient.getCompanyById(user.getCompanyId());
-        }
-
-        return userMapper.toDto(user, company);
+        return userMapper.toDto(user, null);
     }
 
     @Override
     @Transactional(readOnly = true)
     public List<UserDto> getAll() {
-        List<User> users = userRepository.findAll();
-        List<UserDto> dtos = new ArrayList<>();
-        for (User u : users) {
-            CompanyInfoDto company = null;
-            if (u.getCompanyId() != null) {
-                company = companyClient.getCompanyById(u.getCompanyId());
-            }
-            dtos.add(userMapper.toDto(u, company));
-        }
-        return dtos;
+        return userRepository.findAll()
+                .stream()
+                .map(u -> userMapper.toDto(u, null))
+                .collect(Collectors.toList());
     }
 
     @Override

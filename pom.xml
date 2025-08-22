@@ -8,9 +8,17 @@
     <version>1.0.0</version>
     <packaging>pom</packaging>
 
+    <parent>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-starter-parent</artifactId>
+        <version>3.5.4</version>
+        <relativePath/>
+    </parent>
+
     <modules>
         <module>user</module>
         <module>company</module>
-        <module>eureka</module>
+        <module>gateway</module>
+        <module>gateway</module>
     </modules>
 </project>
