@@ -29,13 +29,15 @@ public class AggregationController {
                 .get()
                 .uri("http://localhost:8081/users")
                 .retrieve()
-                .bodyToMono(new ParameterizedTypeReference<List<UserDto>>() {});
+                .bodyToMono(new ParameterizedTypeReference<List<UserDto>>() {
+                });
 
         Mono<List<CompanyDto>> companiesMono = webClientBuilder.build()
                 .get()
                 .uri("http://localhost:8082/companies")
                 .retrieve()
-                .bodyToMono(new ParameterizedTypeReference<List<CompanyDto>>() {});
+                .bodyToMono(new ParameterizedTypeReference<List<CompanyDto>>() {
+                });
 
         return Mono.zip(usersMono, companiesMono)
                 .map(tuple -> {
