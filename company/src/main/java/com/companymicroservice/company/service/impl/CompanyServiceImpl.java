@@ -2,6 +2,8 @@ package com.companymicroservice.company.service.impl;
 
 import com.companymicroservice.company.dto.CompanyDto;
 import com.companymicroservice.company.entity.Company;
+import com.companymicroservice.company.event.CompanyEvent;
+import com.companymicroservice.company.event.CompanyEventProducer;
 import com.companymicroservice.company.exception.CompanyNotFoundException;
 import com.companymicroservice.company.mapper.CompanyMapper;
 import com.companymicroservice.company.repository.CompanyRepository;
@@ -21,6 +23,7 @@ public class CompanyServiceImpl implements CompanyService {
 
     private final CompanyRepository companyRepository;
     private final CompanyMapper companyMapper;
+    private final CompanyEventProducer eventProducer;
 
     @Override
     @Transactional(readOnly = true)
@@ -42,7 +45,23 @@ public class CompanyServiceImpl implements CompanyService {
     @Override
     public CompanyDto createCompany(CompanyDto companyDto) {
         Company saved = companyRepository.save(companyMapper.toEntity(companyDto));
-        return companyMapper.toDto(saved, null);
+        CompanyDto dto = companyMapper.toDto(saved, null);
+
+        if (companyDto.getUsers() != null) {
+            companyDto.getUsers().forEach(user -> {
+                CompanyEvent event = new CompanyEvent();
+                event.setUserId(user.getId());
+                event.setFirstName(user.getFirstName());
+                event.setLastName(user.getLastName());
+                event.setPhone(user.getPhone());
+                event.setCompanyId(saved.getId());
+                event.setCompanyName(saved.getName());
+                event.setType(CompanyEvent.EventType.CREATED);
+
+                eventProducer.sendUserEvent("user-events", event);
+            });
+        }
+        return dto;
     }
 
     @Override
@@ -54,13 +73,36 @@ public class CompanyServiceImpl implements CompanyService {
         company.setBudget(companyDto.getBudget());
 
         Company updated = companyRepository.save(company);
+
+        if (companyDto.getUsers() != null) {
+            companyDto.getUsers().forEach(user -> {
+                CompanyEvent event = new CompanyEvent();
+                event.setUserId(user.getId());
+                event.setFirstName(user.getFirstName());
+                event.setLastName(user.getLastName());
+                event.setPhone(user.getPhone());
+                event.setCompanyId(updated.getId());
+                event.setCompanyName(updated.getName());
+                event.setType(CompanyEvent.EventType.UPDATED);
+
+                eventProducer.sendUserEvent("user-events", event);
+            });
+        }
         return companyMapper.toDto(updated, null);
     }
 
     @Override
     public void deleteCompany(UUID id) {
-        if (!companyRepository.existsById(id)) {
-            throw new CompanyNotFoundException("Company with id " + id + " not found");
+        Company company = companyRepository.findById(id)
+                .orElseThrow(() -> new CompanyNotFoundException("Company with id " + id + " not found"));
+
+        if (company.getUserIds() != null) {
+            company.getUserIds().forEach(userId -> {
+                CompanyEvent event = new CompanyEvent();
+                event.setUserId(userId);
+                event.setType(CompanyEvent.EventType.DELETED);
+                eventProducer.sendUserEvent("user-events", event);
+            });
         }
         companyRepository.deleteById(id);
     }
