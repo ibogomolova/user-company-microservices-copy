@@ -13,12 +13,12 @@ public class UserEventProducer {
     private final KafkaTemplate<String, String> kafkaTemplate;
     private final ObjectMapper objectMapper;
 
-    public void sendUserEvent(String topic, UserEvent event) {
+    public void sendCompanyEvent(String topic, UserEvent event) {
         try {
             String json = objectMapper.writeValueAsString(event);
             kafkaTemplate.send(topic, json);
         } catch (JsonProcessingException e) {
-            e.printStackTrace();
+            throw new RuntimeException("Failed to send Kafka message", e);
         }
     }
 }

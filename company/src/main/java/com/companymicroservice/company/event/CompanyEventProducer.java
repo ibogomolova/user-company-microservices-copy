@@ -18,7 +18,7 @@ public class CompanyEventProducer {
             String json = objectMapper.writeValueAsString(event);
             kafkaTemplate.send(topic, json);
         } catch (JsonProcessingException e) {
-            e.printStackTrace();
+            throw new RuntimeException("Failed to send Kafka message", e);
         }
     }
 }

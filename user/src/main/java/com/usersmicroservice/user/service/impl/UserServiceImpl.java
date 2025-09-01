@@ -10,6 +10,7 @@ import com.usersmicroservice.user.reposirory.UserRepository;
 import com.usersmicroservice.user.service.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
@@ -43,7 +44,7 @@ public class UserServiceImpl implements UserService {
         }
         event.setType(UserEvent.EventType.CREATED);
 
-        userEventProducer.sendUserEvent("company-events", event);
+        userEventProducer.sendCompanyEvent("company-events", event);
 
         return userMapper.toDto(saved, null);
     }
@@ -74,7 +75,7 @@ public class UserServiceImpl implements UserService {
 
         event.setType(UserEvent.EventType.UPDATED);
 
-        userEventProducer.sendUserEvent("company-events", event);
+        userEventProducer.sendCompanyEvent("company-events", event);
 
         return userMapper.toDto(updated, null);
     }
@@ -106,8 +107,31 @@ public class UserServiceImpl implements UserService {
         event.setUserId(user.getId());
         event.setType(UserEvent.EventType.DELETED);
 
-        userEventProducer.sendUserEvent("company-events", event);
+        userEventProducer.sendCompanyEvent("company-events", event);
 
         userRepository.deleteById(id);
+    }
+
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    public void syncUserFromCompany(UUID userId, String firstName, String lastName, String phone, UUID companyId) {
+        userRepository.findById(userId).ifPresentOrElse(user -> {
+            user.setFirstName(firstName);
+            user.setLastName(lastName);
+            user.setPhone(phone);
+            user.setCompanyId(companyId);
+            userRepository.saveAndFlush(user);
+        }, () -> {
+            User newUser = new User();
+            newUser.setFirstName(firstName);
+            newUser.setLastName(lastName);
+            newUser.setPhone(phone);
+            newUser.setCompanyId(companyId);
+            userRepository.saveAndFlush(newUser);
+        });
+    }
+
+    @Override
+    public void deleteUsersByCompanyId(UUID companyId) {
+        userRepository.deleteByCompanyId(companyId);
     }
 }

@@ -10,8 +10,10 @@ import com.companymicroservice.company.repository.CompanyRepository;
 import com.companymicroservice.company.service.CompanyService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -49,6 +51,9 @@ public class CompanyServiceImpl implements CompanyService {
 
         if (companyDto.getUsers() != null) {
             companyDto.getUsers().forEach(user -> {
+                if (user.getId() == null) {
+                    user.setId(UUID.randomUUID());
+                }
                 CompanyEvent event = new CompanyEvent();
                 event.setUserId(user.getId());
                 event.setFirstName(user.getFirstName());
@@ -76,6 +81,9 @@ public class CompanyServiceImpl implements CompanyService {
 
         if (companyDto.getUsers() != null) {
             companyDto.getUsers().forEach(user -> {
+                if (user.getId() == null) {
+                    user.setId(UUID.randomUUID());
+                }
                 CompanyEvent event = new CompanyEvent();
                 event.setUserId(user.getId());
                 event.setFirstName(user.getFirstName());
@@ -100,10 +108,37 @@ public class CompanyServiceImpl implements CompanyService {
             company.getUserIds().forEach(userId -> {
                 CompanyEvent event = new CompanyEvent();
                 event.setUserId(userId);
+                event.setCompanyId(company.getId());
                 event.setType(CompanyEvent.EventType.DELETED);
                 eventProducer.sendUserEvent("user-events", event);
             });
         }
         companyRepository.deleteById(id);
+    }
+
+    @Override
+    public void addUserToCompany(UUID userId, UUID companyId) {
+        Company company = companyRepository.findById(companyId)
+                .orElseThrow(() -> new CompanyNotFoundException("Company with id " + companyId + " not found"));
+
+        if (company.getUserIds() == null) {
+            company.setUserIds(new ArrayList<>());
+        }
+        if (!company.getUserIds().contains(userId)) {
+            company.getUserIds().add(userId);
+            companyRepository.saveAndFlush(company);
+        }
+    }
+
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    public void removeUserFromCompany(UUID userId) {
+        List<Company> companiesWithUser = companyRepository.findAll().stream()
+                .filter(company -> company.getUserIds() != null && company.getUserIds().contains(userId))
+                .collect(Collectors.toList());
+
+        for (Company company : companiesWithUser) {
+            company.getUserIds().remove(userId);
+            companyRepository.saveAndFlush(company);
+        }
     }
 }

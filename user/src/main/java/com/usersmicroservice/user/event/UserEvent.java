@@ -1,10 +1,14 @@
 package com.usersmicroservice.user.event;
 
+import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 import java.util.UUID;
 
 @Data
+@NoArgsConstructor
+@AllArgsConstructor
 public class UserEvent {
     private UUID userId;
     private String firstName;

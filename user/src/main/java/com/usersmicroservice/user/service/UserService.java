@@ -15,4 +15,8 @@ public interface UserService {
     List<UserDto> getAll();
 
     void delete(UUID id);
+
+    void syncUserFromCompany(UUID userId, String firstName, String lastName, String phone, UUID companyId);
+
+    void deleteUsersByCompanyId(UUID companyId);
 }
