@@ -15,4 +15,8 @@ public interface CompanyService {
     CompanyDto updateCompany(UUID id, CompanyDto dto);
 
     void deleteCompany(UUID id);
+
+    void addUserToCompany(UUID userId, UUID companyId);
+
+    void removeUserFromCompany(UUID userId);
 }
