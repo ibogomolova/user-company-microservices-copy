@@ -1,5 +1,7 @@
 package com.usersmicroservice.user.service.impl;
 
+import com.usersmicroservice.user.client.CompanyClient;
+import com.usersmicroservice.user.dto.CompanyInfoDto;
 import com.usersmicroservice.user.dto.UserDto;
 import com.usersmicroservice.user.entity.User;
 import com.usersmicroservice.user.event.UserEvent;
@@ -25,6 +27,7 @@ public class UserServiceImpl implements UserService {
     private final UserRepository userRepository;
     private final UserMapper userMapper;
     private final UserEventProducer userEventProducer;
+    private final CompanyClient companyClient;
 
     @Override
     @Transactional
@@ -85,7 +88,19 @@ public class UserServiceImpl implements UserService {
     public UserDto getById(UUID id) {
         User user = userRepository.findById(id)
                 .orElseThrow(() -> new UserNotFoundException("User with id " + id + " not found"));
-        return userMapper.toDto(user, null);
+        CompanyInfoDto company = user.getCompanyId() != null
+                ? companyClient.getCompanyById(user.getCompanyId())
+                : null;
+        return userMapper.toDto(user, company);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<UserDto> getUsersByCompanyId(UUID companyId) {
+        return userRepository.findByCompanyId(companyId)
+                .stream()
+                .map(user -> userMapper.toDto(user, null))
+                .collect(Collectors.toList());
     }
 
     @Override
@@ -93,7 +108,12 @@ public class UserServiceImpl implements UserService {
     public List<UserDto> getAll() {
         return userRepository.findAll()
                 .stream()
-                .map(u -> userMapper.toDto(u, null))
+                .map(user -> {
+                    CompanyInfoDto company = user.getCompanyId() != null
+                            ? companyClient.getCompanyById(user.getCompanyId())
+                            : null;
+                    return userMapper.toDto(user, company);
+                })
                 .collect(Collectors.toList());
     }
 

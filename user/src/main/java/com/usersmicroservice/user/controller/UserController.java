@@ -31,6 +31,11 @@ public class UserController {
         return ResponseEntity.ok(userService.getById(id));
     }
 
+    @GetMapping("/by-company/{companyId}")
+    public List<UserDto> getUsersByCompany(@PathVariable UUID companyId) {
+        return userService.getUsersByCompanyId(companyId);
+    }
+
     @GetMapping
     public ResponseEntity<List<UserDto>> getAll() {
         return ResponseEntity.ok(userService.getAll());
