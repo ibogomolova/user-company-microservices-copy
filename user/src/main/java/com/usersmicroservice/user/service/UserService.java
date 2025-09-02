@@ -12,6 +12,8 @@ public interface UserService {
 
     UserDto getById(UUID id);
 
+    List<UserDto> getUsersByCompanyId(UUID companyId);
+
     List<UserDto> getAll();
 
     void delete(UUID id);

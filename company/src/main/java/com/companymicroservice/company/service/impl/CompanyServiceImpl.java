@@ -1,6 +1,8 @@
 package com.companymicroservice.company.service.impl;
 
+import com.companymicroservice.company.client.UserClient;
 import com.companymicroservice.company.dto.CompanyDto;
+import com.companymicroservice.company.dto.UserInfoDto;
 import com.companymicroservice.company.entity.Company;
 import com.companymicroservice.company.event.CompanyEvent;
 import com.companymicroservice.company.event.CompanyEventProducer;
@@ -26,13 +28,17 @@ public class CompanyServiceImpl implements CompanyService {
     private final CompanyRepository companyRepository;
     private final CompanyMapper companyMapper;
     private final CompanyEventProducer eventProducer;
+    private final UserClient userClient;
 
     @Override
     @Transactional(readOnly = true)
     public List<CompanyDto> getAllCompanies() {
         return companyRepository.findAll()
                 .stream()
-                .map(c -> companyMapper.toDto(c, null))
+                .map(company -> {
+                    List<UserInfoDto> users = userClient.getUsersByCompany(company.getId());
+                    return companyMapper.toDto(company, users);
+                })
                 .collect(Collectors.toList());
     }
 
@@ -41,7 +47,8 @@ public class CompanyServiceImpl implements CompanyService {
     public CompanyDto getCompanyById(UUID id) {
         Company company = companyRepository.findById(id)
                 .orElseThrow(() -> new CompanyNotFoundException("Company with id " + id + " not found"));
-        return companyMapper.toDto(company, null);
+        List<UserInfoDto> users = userClient.getUsersByCompany(company.getId());
+        return companyMapper.toDto(company, users);
     }
 
     @Override

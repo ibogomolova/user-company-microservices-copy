@@ -13,5 +13,6 @@ public interface UserMapper {
     @Mapping(target = "id", source = "user.id")
     UserDto toDto(User user, CompanyInfoDto companyInfo);
 
+    @Mapping(target = "companyId", ignore = true)
     User toEntity(UserDto userDto);
 }
