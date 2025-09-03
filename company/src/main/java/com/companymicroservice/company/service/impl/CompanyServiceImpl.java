@@ -20,6 +20,14 @@ import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
+/**
+ * Реализация сервиса компаний.
+ * <p>
+ * Содержит бизнес-логику для работы с компаниями:
+ * - CRUD-операции;
+ * - синхронизацию пользователей через Kafka;
+ * - управление связями пользователей и компаний.
+ */
 @Service
 @RequiredArgsConstructor
 @Transactional
@@ -30,6 +38,11 @@ public class CompanyServiceImpl implements CompanyService {
     private final CompanyEventProducer eventProducer;
     private final UserClient userClient;
 
+    /**
+     * Получает список всех компаний вместе с пользователями.
+     *
+     * @return список DTO компаний
+     */
     @Override
     @Transactional(readOnly = true)
     public List<CompanyDto> getAllCompanies() {
@@ -42,6 +55,13 @@ public class CompanyServiceImpl implements CompanyService {
                 .collect(Collectors.toList());
     }
 
+    /**
+     * Получает компанию по её ID.
+     *
+     * @param id идентификатор компании
+     * @return DTO компании
+     * @throws CompanyNotFoundException если компания не найдена
+     */
     @Override
     @Transactional(readOnly = true)
     public CompanyDto getCompanyById(UUID id) {
@@ -51,6 +71,13 @@ public class CompanyServiceImpl implements CompanyService {
         return companyMapper.toDto(company, users);
     }
 
+    /**
+     * Создаёт новую компанию и отправляет события
+     * о добавленных пользователях в Kafka.
+     *
+     * @param companyDto DTO компании
+     * @return созданная компания
+     */
     @Override
     public CompanyDto createCompany(CompanyDto companyDto) {
         Company saved = companyRepository.save(companyMapper.toEntity(companyDto));
@@ -76,6 +103,14 @@ public class CompanyServiceImpl implements CompanyService {
         return dto;
     }
 
+    /**
+     * Обновляет компанию и синхронизирует пользователей через Kafka.
+     *
+     * @param id         идентификатор обновляемой компании
+     * @param companyDto DTO с новыми данными
+     * @return обновлённая компания
+     * @throws CompanyNotFoundException если компания не найдена
+     */
     @Override
     public CompanyDto updateCompany(UUID id, CompanyDto companyDto) {
         Company company = companyRepository.findById(id)
@@ -106,6 +141,13 @@ public class CompanyServiceImpl implements CompanyService {
         return companyMapper.toDto(updated, null);
     }
 
+    /**
+     * Удаляет компанию и отправляет события о том,
+     * что пользователи больше не принадлежат ей.
+     *
+     * @param id идентификатор компании
+     * @throws CompanyNotFoundException если компания не найдена
+     */
     @Override
     public void deleteCompany(UUID id) {
         Company company = companyRepository.findById(id)
@@ -123,6 +165,13 @@ public class CompanyServiceImpl implements CompanyService {
         companyRepository.deleteById(id);
     }
 
+    /**
+     * Добавляет пользователя в список сотрудников компании.
+     *
+     * @param userId    идентификатор пользователя
+     * @param companyId идентификатор компании
+     * @throws CompanyNotFoundException если компания не найдена
+     */
     @Override
     public void addUserToCompany(UUID userId, UUID companyId) {
         Company company = companyRepository.findById(companyId)
@@ -137,6 +186,11 @@ public class CompanyServiceImpl implements CompanyService {
         }
     }
 
+    /**
+     * Удаляет пользователя из всех компаний, где он числится.
+     *
+     * @param userId идентификатор пользователя
+     */
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     public void removeUserFromCompany(UUID userId) {
         List<Company> companiesWithUser = companyRepository.findAll().stream()

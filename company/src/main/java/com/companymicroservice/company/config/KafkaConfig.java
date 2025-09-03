@@ -9,17 +9,32 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.kafka.config.ConcurrentKafkaListenerContainerFactory;
-import org.springframework.kafka.core.*;
+import org.springframework.kafka.core.DefaultKafkaConsumerFactory;
+import org.springframework.kafka.core.DefaultKafkaProducerFactory;
+import org.springframework.kafka.core.KafkaTemplate;
 
 import java.util.HashMap;
 import java.util.Map;
 
+/**
+ * Конфигурация Kafka для микросервиса компаний.
+ * Настраивает:
+ * <p>
+ * - KafkaTemplate для отправки сообщений в топики;
+ * - фабрику контейнеров слушателей для обработки входящих сообщений;
+ * - ObjectMapper для сериализации и десериализации JSON.
+ */
 @Configuration
 public class KafkaConfig {
 
     @Value("${spring.kafka.bootstrap-servers}")
     private String bootstrapServers;
 
+    /**
+     * Конфигурирует KafkaTemplate для отправки строковых сообщений в Kafka.
+     *
+     * @return настроенный KafkaTemplate
+     */
     @Bean
     public KafkaTemplate<String, String> kafkaTemplate() {
         Map<String, Object> props = new HashMap<>();
@@ -29,6 +44,12 @@ public class KafkaConfig {
         return new KafkaTemplate<>(new DefaultKafkaProducerFactory<>(props));
     }
 
+    /**
+     * Конфигурирует фабрику контейнеров для KafkaListener.
+     * Используется для обработки входящих сообщений из Kafka.
+     *
+     * @return фабрика контейнеров слушателей Kafka
+     */
     @Bean
     public ConcurrentKafkaListenerContainerFactory<String, String> kafkaListenerContainerFactory() {
         Map<String, Object> props = new HashMap<>();
@@ -41,6 +62,11 @@ public class KafkaConfig {
         return factory;
     }
 
+    /**
+     * Бин ObjectMapper для работы с JSON.
+     *
+     * @return экземпляр ObjectMapper
+     */
     @Bean
     public ObjectMapper objectMapper() {
         return new ObjectMapper();

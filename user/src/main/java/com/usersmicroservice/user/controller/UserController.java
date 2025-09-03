@@ -9,6 +9,10 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 import java.util.UUID;
 
+/**
+ * REST-контроллер для управления пользователями.
+ * Предоставляет CRUD-эндпоинты для работы с пользователями.
+ */
 @RestController
 @RequestMapping("/users")
 @RequiredArgsConstructor

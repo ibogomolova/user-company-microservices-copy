@@ -7,6 +7,10 @@ import lombok.NoArgsConstructor;
 
 import java.util.UUID;
 
+/**
+ * DTO для представления информации о пользователе,
+ * связанного с компанией.
+ */
 @Data
 @AllArgsConstructor
 @NoArgsConstructor

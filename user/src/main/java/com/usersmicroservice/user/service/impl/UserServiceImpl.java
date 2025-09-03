@@ -19,6 +19,14 @@ import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
+/**
+ * Реализация сервиса пользователей.
+ * <p>
+ * Содержит бизнес-логику для работы с пользователями:
+ * - CRUD-операции;
+ * - синхронизацию с сервисом компаний через Kafka;
+ * - получение связанных данных о компании через Feign-клиент.
+ */
 @Service
 @RequiredArgsConstructor
 @Transactional
@@ -29,6 +37,12 @@ public class UserServiceImpl implements UserService {
     private final UserEventProducer userEventProducer;
     private final CompanyClient companyClient;
 
+    /**
+     * Создаёт нового пользователя и отправляет событие в Kafka.
+     *
+     * @param userDto DTO пользователя
+     * @return созданный пользователь
+     */
     @Override
     @Transactional
     public UserDto create(UserDto userDto) {
@@ -52,6 +66,14 @@ public class UserServiceImpl implements UserService {
         return userMapper.toDto(saved, null);
     }
 
+    /**
+     * Обновляет пользователя и отправляет событие в Kafka.
+     *
+     * @param id      идентификатор пользователя
+     * @param userDto новые данные
+     * @return обновлённый пользователь
+     * @throws UserNotFoundException если пользователь не найден
+     */
     @Override
     @Transactional
     public UserDto update(UUID id, UserDto userDto) {
@@ -83,6 +105,13 @@ public class UserServiceImpl implements UserService {
         return userMapper.toDto(updated, null);
     }
 
+    /**
+     * Получает пользователя по его ID.
+     *
+     * @param id идентификатор пользователя
+     * @return DTO пользователя с информацией о компании
+     * @throws UserNotFoundException если пользователь не найден
+     */
     @Override
     @Transactional(readOnly = true)
     public UserDto getById(UUID id) {
@@ -94,6 +123,12 @@ public class UserServiceImpl implements UserService {
         return userMapper.toDto(user, company);
     }
 
+    /**
+     * Получает всех пользователей компании.
+     *
+     * @param companyId идентификатор компании
+     * @return список пользователей
+     */
     @Override
     @Transactional(readOnly = true)
     public List<UserDto> getUsersByCompanyId(UUID companyId) {
@@ -103,6 +138,11 @@ public class UserServiceImpl implements UserService {
                 .collect(Collectors.toList());
     }
 
+    /**
+     * Получает список всех пользователей вместе с компаниями.
+     *
+     * @return список пользователей
+     */
     @Override
     @Transactional(readOnly = true)
     public List<UserDto> getAll() {
@@ -117,6 +157,12 @@ public class UserServiceImpl implements UserService {
                 .collect(Collectors.toList());
     }
 
+    /**
+     * Удаляет пользователя и отправляет событие об удалении в Kafka.
+     *
+     * @param id идентификатор пользователя
+     * @throws UserNotFoundException если пользователь не найден
+     */
     @Override
     @Transactional
     public void delete(UUID id) {
@@ -132,6 +178,16 @@ public class UserServiceImpl implements UserService {
         userRepository.deleteById(id);
     }
 
+    /**
+     * Синхронизирует данные о пользователе на основе события из сервиса компаний.
+     * Если пользователь найден — обновляет, иначе создаёт нового.
+     *
+     * @param userId    ID пользователя
+     * @param firstName имя
+     * @param lastName  фамилия
+     * @param phone     телефон
+     * @param companyId ID компании
+     */
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     public void syncUserFromCompany(UUID userId, String firstName, String lastName, String phone, UUID companyId) {
         userRepository.findById(userId).ifPresentOrElse(user -> {
@@ -150,6 +206,11 @@ public class UserServiceImpl implements UserService {
         });
     }
 
+    /**
+     * Удаляет всех пользователей компании по её ID.
+     *
+     * @param companyId идентификатор компании
+     */
     @Override
     public void deleteUsersByCompanyId(UUID companyId) {
         userRepository.deleteByCompanyId(companyId);

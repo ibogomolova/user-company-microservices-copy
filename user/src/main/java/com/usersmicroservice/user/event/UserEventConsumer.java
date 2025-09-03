@@ -9,6 +9,13 @@ import org.springframework.stereotype.Component;
 
 import java.util.UUID;
 
+/**
+ * Консьюмер Kafka-сообщений для микросервиса пользователей.
+ * <p>
+ * Слушает топик "user-events" и выполняет действия:
+ * - синхронизация пользователя при создании или обновлении;
+ * - удаление пользователей при удалении компании.
+ */
 @Component
 @RequiredArgsConstructor
 public class UserEventConsumer {
@@ -16,6 +23,11 @@ public class UserEventConsumer {
     private final ObjectMapper objectMapper;
     private final UserService userService;
 
+    /**
+     * Обработка входящих сообщений из Kafka.
+     *
+     * @param message JSON-сообщение с данными о компании и пользователях
+     */
     @KafkaListener(topics = "user-events", groupId = "user-group")
     public void consumeCompanyEvent(String message) {
         try {
@@ -43,6 +55,9 @@ public class UserEventConsumer {
         }
     }
 
+    /**
+     * Внутренний класс для десериализации JSON-сообщений.
+     */
     @JsonIgnoreProperties(ignoreUnknown = true)
     private static class CompanyEventData {
         public UUID userId;

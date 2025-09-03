@@ -8,6 +8,10 @@ import lombok.NoArgsConstructor;
 import java.math.BigDecimal;
 import java.util.UUID;
 
+/**
+ * DTO для представления информации о компании,
+ * связанной с пользователем.
+ */
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
