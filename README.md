@@ -55,10 +55,15 @@ company-service — хранение и управление компаниям�
 ### Структура репозитория
 
 user-company-microservices
+
 ├─ company/       # company-service 
+
 ├─ gateway/       # gateway-service
+
 ├─ user/          # user-service 
+
 ├─ docker-compose.yml
+
 └─ README.md
 
 ## 4. Быстрый старт (локально)
@@ -69,7 +74,7 @@ user-company-microservices
 - Docker, docker-compose
 
 ### Сборка и запуск
-1. Клонируй репозиторий и перейди в папку проекта:
+Клонируй репозиторий и перейди в папку проекта:
 bash
 git clone <https://github.com/ibogomolova/user-company-microservices.git>
 cd user-company-microservices
@@ -81,31 +86,30 @@ cd user-company-microservices
 
 Собери все три сервиса:
 
-./mvnw clean package -DskipTests
+```./mvnw clean package -DskipTests```
 
 ## 5. Переменные окружения / конфигурация
 Пример application.properties (замени значения на реальные через env vars):
 
-### company-service (application.properties):
+## company-service (application.properties):
 spring.application.name=company
 server.port=8082
-
-# Postgres
+#### Postgres
 spring.datasource.url=jdbc:postgresql://localhost:5432/${COMPANY_M_DB}
 spring.datasource.username=${COMPANY_M_ADMIN}
 spring.datasource.password=${COMPANY_M_PASSWORD}
 spring.datasource.driver-class-name=org.postgresql.Driver
 spring.liquibase.default-schema=public
 
-# Liquibase
+#### Liquibase
 spring.liquibase.change-log=classpath:db/changelog-master.yaml
 
-# JPA & Hibernate
+#### JPA & Hibernate
 spring.jpa.hibernate.ddl-auto=validate
 spring.jpa.show-sql=true
 spring.jpa.properties.hibernate.dialect=org.hibernate.dialect.PostgreSQLDialect
 
-# Kafka
+#### Kafka
 spring.kafka.bootstrap-servers=${SPRING_KAFKA_BOOTSTRAP-SERVERS:kafka:9092}
 spring.kafka.consumer.group-id=company-group
 spring.kafka.consumer.auto-offset-reset=earliest
@@ -114,12 +118,44 @@ spring.kafka.consumer.value-deserializer=org.apache.kafka.common.serialization.S
 spring.kafka.producer.key-serializer=org.apache.kafka.common.serialization.StringSerializer
 spring.kafka.producer.value-serializer=org.apache.kafka.common.serialization.StringSerializer
 
-# User client
+#### User client
 user.service.url=http://user-service:8081
 
-### user-service (application.properties):
+## user-service (application.properties):
+spring.application.name=user
+server.port=8081
 
-Совет: храните пароли и секреты в переменных окружения или secret manager.
+#### Postgres
+
+spring.datasource.url=jdbc:postgresql://localhost:5432/${USERS_M_DB}
+spring.datasource.username=${USERS_M_ADMIN}
+spring.datasource.password=${USERS_M_PASSWORD}
+spring.datasource.driver-class-name=org.postgresql.Driver
+spring.liquibase.default-schema=public
+
+#### Liquibase
+
+spring.liquibase.change-log=classpath:db/changelog-master.yaml
+
+#### JPA & Hibernate
+
+spring.jpa.hibernate.ddl-auto=validate
+spring.jpa.show-sql=true
+spring.jpa.properties.hibernate.dialect=org.hibernate.dialect.PostgreSQLDialect
+
+#### Kafka
+spring.kafka.bootstrap-servers=${SPRING_KAFKA_BOOTSTRAP-SERVERS:kafka:9092}
+spring.kafka.consumer.group-id=user-group
+spring.kafka.consumer.auto-offset-reset=earliest
+spring.kafka.consumer.key-deserializer=org.apache.kafka.common.serialization.StringDeserializer
+spring.kafka.consumer.value-deserializer=org.apache.kafka.common.serialization.StringDeserializer
+spring.kafka.producer.key-serializer=org.apache.kafka.common.serialization.StringSerializer
+spring.kafka.producer.value-serializer=org.apache.kafka.common.serialization.StringSerializer
+
+#### Company client
+company.service.url=http://company-service:8082
+
+### Совет: храните пароли и секреты в переменных окружения или secret manager.
 
 ## 6. Docker / docker-compose
 
@@ -139,12 +175,7 @@ docker compose up --build
 
 ## 8. Тестирование
 Запуск тестов:
-./mvnw test
-
-Простой endpoint для проверки SMTP уже есть:
-GET /test-email — отправляет тестовое письмо на адрес, указанный в коде (в TestMailController). Отредактируй адрес или используй контроллер как шаблон для тестирования.
-
-Отладка почты: включи spring.mail.properties.mail.debug=true в properties, чтобы видеть SMTP-диалог в логах.
+```./mvnw test```
 
 ## 9. Основные эндпоинты (быстрый список)
 (Автоматически извлечены из контроллеров — проверить в коде для деталей запросов/тел)
