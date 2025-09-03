@@ -11,6 +11,10 @@ import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
 
+/**
+ * Сущность компании.
+ * Хранится в таблице "companies".
+ */
 @Entity
 @AllArgsConstructor
 @NoArgsConstructor
@@ -29,6 +33,9 @@ public class Company {
     @Column(nullable = false)
     private BigDecimal budget;
 
+    /**
+     * Список идентификаторов пользователей, связанных с компанией
+     */
     @ElementCollection
     @CollectionTable(name = "company_users", joinColumns = @JoinColumn(name = "company_id"))
     @Column(name = "user_id")

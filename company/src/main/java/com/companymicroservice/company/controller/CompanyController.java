@@ -9,6 +9,10 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 import java.util.UUID;
 
+/**
+ * REST-контроллер для управления компаниями.
+ * Предоставляет CRUD-эндпоинты для работы с компаниями.
+ */
 @RestController
 @RequestMapping("/companies")
 @RequiredArgsConstructor

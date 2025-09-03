@@ -9,9 +9,19 @@ import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.Map;
 
+/**
+ * Глобальный обработчик исключений для приложения.
+ * Перехватывает и обрабатывает ошибки, возвращая корректный HTTP-ответ.
+ */
 @ControllerAdvice
 public class GlobalExceptionHandler {
 
+    /**
+     * Обрабатывает исключение {@link UserNotFoundException}.
+     *
+     * @param ex исключение
+     * @return HTTP-ответ со статусом 404 и описанием ошибки
+     */
     @ExceptionHandler(UserNotFoundException.class)
     public ResponseEntity<Map<String, Object>> handleUserNotFound(UserNotFoundException ex) {
         Map<String, Object> body = new HashMap<>();
@@ -23,6 +33,12 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(body);
     }
 
+    /**
+     * Обрабатывает все прочие необработанные исключения.
+     *
+     * @param ex исключение
+     * @return HTTP-ответ со статусом 500 и описанием ошибки
+     */
     @ExceptionHandler(Exception.class)
     public ResponseEntity<Map<String, Object>> handleGenericException(Exception ex) {
         Map<String, Object> body = new HashMap<>();

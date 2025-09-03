@@ -6,6 +6,10 @@ import lombok.NoArgsConstructor;
 
 import java.util.UUID;
 
+/**
+ * DTO-событие для обмена данными между сервисами через Kafka.
+ * Используется в микросервисе пользователей для передачи информации о пользователях и компаниях.
+ */
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
@@ -18,5 +22,8 @@ public class UserEvent {
     private String companyName;
     private EventType type;
 
+    /**
+     * Тип события: создание, обновление или удаление.
+     */
     public enum EventType { CREATED, UPDATED, DELETED }
 }

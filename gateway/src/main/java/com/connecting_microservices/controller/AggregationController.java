@@ -16,12 +16,26 @@ import java.util.UUID;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
+/**
+ * REST-контроллер для агрегации данных из двух микросервисов:
+ * пользователей и компаний.
+ * <p>
+ * Выполняет асинхронные запросы к сервисам и возвращает объединённый результат.
+ */
 @RestController
 @RequiredArgsConstructor
 public class AggregationController {
 
     private final WebClient.Builder webClientBuilder;
 
+    /**
+     * Возвращает список пользователей вместе с их компаниями.
+     * <p>
+     * Запрашивает пользователей и компании из соответствующих сервисов
+     * и объединяет данные по companyId.
+     *
+     * @return список пользователей с объектами компаний
+     */
     @GetMapping("/users-with-companies")
     public Mono<List<UserDtoWithCompany>> getUsersWithCompanies() {
 

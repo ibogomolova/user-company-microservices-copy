@@ -8,10 +8,28 @@ import org.mapstruct.Mapping;
 
 import java.util.List;
 
+/**
+ * Mapper для преобразования между сущностью {@link com.companymicroservice.company.entity.Company}
+ * и DTO {@link CompanyDto}.
+ */
 @Mapper(componentModel = "spring")
 public interface CompanyMapper {
+
+    /**
+     * Преобразует сущность компании в DTO.
+     *
+     * @param company      сущность компании
+     * @param userInfoList список пользователей компании
+     * @return DTO компании
+     */
     @Mapping(target = "users", source = "userInfoList")
     CompanyDto toDto(Company company, List<UserInfoDto> userInfoList);
 
+    /**
+     * Преобразует DTO компании в сущность.
+     *
+     * @param dto DTO компании
+     * @return сущность компании
+     */
     Company toEntity(CompanyDto dto);
 }
