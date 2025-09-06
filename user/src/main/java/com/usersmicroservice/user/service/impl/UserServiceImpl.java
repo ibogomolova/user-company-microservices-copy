@@ -149,9 +149,12 @@ public class UserServiceImpl implements UserService {
         return userRepository.findAll()
                 .stream()
                 .map(user -> {
-                    CompanyInfoDto company = user.getCompanyId() != null
-                            ? companyClient.getCompanyById(user.getCompanyId())
-                            : null;
+                    CompanyInfoDto company;
+                    try {
+                        company = user.getCompanyId() != null ? companyClient.getCompanyById(user.getCompanyId()) : null;
+                    } catch (Exception e) {
+                        company = null;
+                    }
                     return userMapper.toDto(user, company);
                 })
                 .collect(Collectors.toList());
