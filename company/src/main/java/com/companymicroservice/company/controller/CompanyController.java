@@ -26,18 +26,18 @@ public class CompanyController {
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<CompanyDto> getCompanyById(@PathVariable UUID id) {
-        return ResponseEntity.ok(companyService.getCompanyById(id));
+    public CompanyDto getCompanyById(@PathVariable UUID id) {
+        return companyService.getCompanyById(id);
     }
 
     @PostMapping
-    public ResponseEntity<CompanyDto> createCompany(@RequestBody CompanyDto companyDto) {
-        return ResponseEntity.ok(companyService.createCompany(companyDto));
+    public CompanyDto createCompany(@RequestBody CompanyDto companyDto) {
+        return companyService.createCompany(companyDto);
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<CompanyDto> updateCompany(@PathVariable UUID id, @RequestBody CompanyDto companyDto) {
-        return ResponseEntity.ok(companyService.updateCompany(id, companyDto));
+    public CompanyDto updateCompany(@PathVariable UUID id, @RequestBody CompanyDto companyDto) {
+        return companyService.updateCompany(id, companyDto);
     }
 
     @DeleteMapping("/{id}")

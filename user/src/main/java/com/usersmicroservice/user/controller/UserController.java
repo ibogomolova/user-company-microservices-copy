@@ -21,18 +21,18 @@ public class UserController {
     private final UserService userService;
 
     @PostMapping
-    public ResponseEntity<UserDto> create(@RequestBody UserDto dto) {
-        return ResponseEntity.ok(userService.create(dto));
+    public UserDto create(@RequestBody UserDto dto) {
+        return userService.create(dto);
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<UserDto> update(@PathVariable UUID id, @RequestBody UserDto dto) {
-        return ResponseEntity.ok(userService.update(id, dto));
+    public UserDto update(@PathVariable UUID id, @RequestBody UserDto dto) {
+        return userService.update(id, dto);
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<UserDto> getById(@PathVariable UUID id) {
-        return ResponseEntity.ok(userService.getById(id));
+    public UserDto getById(@PathVariable UUID id) {
+        return userService.getById(id);
     }
 
     @GetMapping("/by-company/{companyId}")
@@ -41,8 +41,8 @@ public class UserController {
     }
 
     @GetMapping
-    public ResponseEntity<List<UserDto>> getAll() {
-        return ResponseEntity.ok(userService.getAll());
+    public List<UserDto> getAll() {
+        return userService.getAll();
     }
 
     @DeleteMapping("/{id}")
