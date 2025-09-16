@@ -81,26 +81,35 @@ public class CompanyServiceImpl implements CompanyService {
     @Override
     public CompanyDto createCompany(CompanyDto companyDto) {
         Company saved = companyRepository.save(companyMapper.toEntity(companyDto));
-        CompanyDto dto = companyMapper.toDto(saved, null);
 
+        List<UserInfoDto> users = new ArrayList<>();
         if (companyDto.getUsers() != null) {
-            companyDto.getUsers().forEach(user -> {
-                if (user.getId() == null) {
+            users = companyDto.getUsers().stream().map(user -> {
+                UserInfoDto fullUser;
+                if (user.getId() != null) {
+                    try {
+                        fullUser = userClient.getUserById(user.getId());
+                    } catch (Exception e) {
+                        fullUser = user;
+                    }
+                } else {
                     user.setId(UUID.randomUUID());
+                    fullUser = user;
                 }
                 CompanyEvent event = new CompanyEvent();
-                event.setUserId(user.getId());
-                event.setFirstName(user.getFirstName());
-                event.setLastName(user.getLastName());
-                event.setPhone(user.getPhone());
+                event.setUserId(fullUser.getId());
+                event.setFirstName(fullUser.getFirstName());
+                event.setLastName(fullUser.getLastName());
+                event.setPhone(fullUser.getPhone());
                 event.setCompanyId(saved.getId());
                 event.setCompanyName(saved.getName());
                 event.setType(CompanyEvent.EventType.CREATED);
 
                 eventProducer.sendUserEvent("user-events", event);
-            });
+                return fullUser;
+            }).collect(Collectors.toList());
         }
-        return dto;
+        return companyMapper.toDto(saved, users);
     }
 
     /**
@@ -121,24 +130,35 @@ public class CompanyServiceImpl implements CompanyService {
 
         Company updated = companyRepository.save(company);
 
+        List<UserInfoDto> users = new ArrayList<>();
         if (companyDto.getUsers() != null) {
-            companyDto.getUsers().forEach(user -> {
-                if (user.getId() == null) {
+            users = companyDto.getUsers().stream().map(user -> {
+                UserInfoDto fullUser;
+                if (user.getId() != null) {
+                    try {
+                        fullUser = userClient.getUserById(user.getId());
+                    } catch (Exception e) {
+                        fullUser = user;
+                    }
+                } else {
                     user.setId(UUID.randomUUID());
+                    fullUser = user;
                 }
                 CompanyEvent event = new CompanyEvent();
-                event.setUserId(user.getId());
-                event.setFirstName(user.getFirstName());
-                event.setLastName(user.getLastName());
-                event.setPhone(user.getPhone());
+                event.setUserId(fullUser.getId());
+                event.setFirstName(fullUser.getFirstName());
+                event.setLastName(fullUser.getLastName());
+                event.setPhone(fullUser.getPhone());
                 event.setCompanyId(updated.getId());
                 event.setCompanyName(updated.getName());
                 event.setType(CompanyEvent.EventType.UPDATED);
 
                 eventProducer.sendUserEvent("user-events", event);
-            });
+
+                return fullUser;
+            }).collect(Collectors.toList());
         }
-        return companyMapper.toDto(updated, null);
+        return companyMapper.toDto(updated, users);
     }
 
     /**

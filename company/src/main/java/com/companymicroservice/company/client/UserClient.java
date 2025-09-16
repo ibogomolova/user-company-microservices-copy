@@ -24,4 +24,7 @@ public interface UserClient {
      */
     @GetMapping("/users/by-company/{companyId}")
     List<UserInfoDto> getUsersByCompany(@PathVariable UUID companyId);
+
+    @GetMapping("/users/{id}")
+    UserInfoDto getUserById(@PathVariable UUID id);
 }
