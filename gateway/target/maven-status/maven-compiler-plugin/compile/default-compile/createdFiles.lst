@@ -1,0 +1,8 @@
+com\connecting_microservices\controller\AggregationController.class
+com\connecting_microservices\controller\AggregationController$2.class
+com\connecting_microservices\dto\UserDtoWithCompany.class
+com\connecting_microservices\dto\CompanyDto.class
+com\connecting_microservices\config\WebClientConfig.class
+com\connecting_microservices\GatewayApplication.class
+com\connecting_microservices\dto\UserDto.class
+com\connecting_microservices\controller\AggregationController$1.class
