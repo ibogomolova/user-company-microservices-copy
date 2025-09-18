@@ -1,3 +1,0 @@
-databaseChangeLog:
-  - include:
-      file: db/migration/users_db.yaml
