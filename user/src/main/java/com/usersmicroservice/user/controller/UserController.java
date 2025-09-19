@@ -3,6 +3,8 @@ package com.usersmicroservice.user.controller;
 import com.usersmicroservice.user.dto.UserDto;
 import com.usersmicroservice.user.service.UserService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -41,8 +43,10 @@ public class UserController {
     }
 
     @GetMapping
-    public List<UserDto> getAll() {
-        return userService.getAll();
+    public Page<UserDto> getAll(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size) {
+        return userService.getAll(PageRequest.of(page, size));
     }
 
     @DeleteMapping("/{id}")

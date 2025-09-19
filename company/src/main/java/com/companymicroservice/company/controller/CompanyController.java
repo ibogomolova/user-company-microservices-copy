@@ -3,6 +3,8 @@ package com.companymicroservice.company.controller;
 import com.companymicroservice.company.dto.CompanyDto;
 import com.companymicroservice.company.service.CompanyService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -21,8 +23,10 @@ public class CompanyController {
     private final CompanyService companyService;
 
     @GetMapping
-    public List<CompanyDto> getAllCompanies() {
-        return companyService.getAllCompanies();
+    public Page<CompanyDto> getAllCompanies(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size) {
+        return companyService.getAllCompanies(PageRequest.of(page, size));
     }
 
     @GetMapping("/{id}")

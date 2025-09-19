@@ -11,6 +11,8 @@ import com.companymicroservice.company.mapper.CompanyMapper;
 import com.companymicroservice.company.repository.CompanyRepository;
 import com.companymicroservice.company.service.CompanyService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
@@ -45,14 +47,12 @@ public class CompanyServiceImpl implements CompanyService {
      */
     @Override
     @Transactional(readOnly = true)
-    public List<CompanyDto> getAllCompanies() {
-        return companyRepository.findAll()
-                .stream()
+    public Page<CompanyDto> getAllCompanies(Pageable pageable) {
+        return companyRepository.findAll(pageable)
                 .map(company -> {
                     List<UserInfoDto> users = userClient.getUsersByCompany(company.getId());
                     return companyMapper.toDto(company, users);
-                })
-                .collect(Collectors.toList());
+                });
     }
 
     /**
@@ -215,7 +215,7 @@ public class CompanyServiceImpl implements CompanyService {
     public void removeUserFromCompany(UUID userId) {
         List<Company> companiesWithUser = companyRepository.findAll().stream()
                 .filter(company -> company.getUserIds() != null && company.getUserIds().contains(userId))
-                .collect(Collectors.toList());
+                .toList();
 
         for (Company company : companiesWithUser) {
             company.getUserIds().remove(userId);

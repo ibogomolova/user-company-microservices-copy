@@ -11,6 +11,8 @@ import com.usersmicroservice.user.mapper.UserMapper;
 import com.usersmicroservice.user.reposirory.UserRepository;
 import com.usersmicroservice.user.service.UserService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
@@ -156,9 +158,8 @@ public class UserServiceImpl implements UserService {
      */
     @Override
     @Transactional(readOnly = true)
-    public List<UserDto> getAll() {
-        return userRepository.findAll()
-                .stream()
+    public Page<UserDto> getAll(Pageable pageable) {
+        return userRepository.findAll(pageable)
                 .map(user -> {
                     CompanyInfoDto company;
                     try {
@@ -167,8 +168,7 @@ public class UserServiceImpl implements UserService {
                         company = null;
                     }
                     return userMapper.toDto(user, company);
-                })
-                .collect(Collectors.toList());
+                });
     }
 
     /**
