@@ -2,6 +2,7 @@ package com.usersmicroservice.user.controller;
 
 import com.usersmicroservice.user.dto.UserDto;
 import com.usersmicroservice.user.service.UserService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -23,12 +24,13 @@ public class UserController {
     private final UserService userService;
 
     @PostMapping
-    public UserDto create(@RequestBody UserDto dto) {
+    public UserDto create(@RequestBody @Valid UserDto dto) {
         return userService.create(dto);
     }
 
     @PutMapping("/{id}")
-    public UserDto update(@PathVariable UUID id, @RequestBody UserDto dto) {
+    public UserDto update(@PathVariable UUID id,
+                          @RequestBody @Valid UserDto dto) {
         return userService.update(id, dto);
     }
 
@@ -43,9 +45,8 @@ public class UserController {
     }
 
     @GetMapping
-    public Page<UserDto> getAll(
-            @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "10") int size) {
+    public Page<UserDto> getAll(@RequestParam(defaultValue = "0") int page,
+                                @RequestParam(defaultValue = "10") int size) {
         return userService.getAll(PageRequest.of(page, size));
     }
 

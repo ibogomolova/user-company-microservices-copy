@@ -39,3 +39,12 @@ databaseChangeLog:
                   type: UUID
                   constraints:
                     nullable: false
+
+  - changeSet:
+      id: 3
+      author: bogomolova
+      changes:
+        - modifyDataType:
+            tableName: companies
+            columnName: name
+            newDataType: VARCHAR(50)

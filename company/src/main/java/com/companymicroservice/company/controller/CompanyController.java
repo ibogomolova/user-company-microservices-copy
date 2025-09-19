@@ -2,6 +2,7 @@ package com.companymicroservice.company.controller;
 
 import com.companymicroservice.company.dto.CompanyDto;
 import com.companymicroservice.company.service.CompanyService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -35,12 +36,13 @@ public class CompanyController {
     }
 
     @PostMapping
-    public CompanyDto createCompany(@RequestBody CompanyDto companyDto) {
+    public CompanyDto createCompany(@RequestBody @Valid CompanyDto companyDto) {
         return companyService.createCompany(companyDto);
     }
 
     @PutMapping("/{id}")
-    public CompanyDto updateCompany(@PathVariable UUID id, @RequestBody CompanyDto companyDto) {
+    public CompanyDto updateCompany(@PathVariable UUID id,
+                                    @RequestBody @Valid CompanyDto companyDto) {
         return companyService.updateCompany(id, companyDto);
     }
 
