@@ -7,6 +7,7 @@ import com.usersmicroservice.user.entity.User;
 import com.usersmicroservice.user.event.UserEvent;
 import com.usersmicroservice.user.event.UserEventProducer;
 import com.usersmicroservice.user.exception.UserNotFoundException;
+import com.usersmicroservice.user.mapper.UserEventMapper;
 import com.usersmicroservice.user.mapper.UserMapper;
 import com.usersmicroservice.user.reposirory.UserRepository;
 import com.usersmicroservice.user.service.UserService;
@@ -36,6 +37,7 @@ public class UserServiceImpl implements UserService {
 
     private final UserRepository userRepository;
     private final UserMapper userMapper;
+    private final UserEventMapper userEventMapper;
     private final UserEventProducer userEventProducer;
     private final CompanyClient companyClient;
 
@@ -56,24 +58,18 @@ public class UserServiceImpl implements UserService {
 
         User saved = userRepository.save(user);
 
-        UserEvent event = new UserEvent();
-        event.setUserId(saved.getId());
-        event.setFirstName(saved.getFirstName());
-        event.setLastName(saved.getLastName());
-        event.setPhone(saved.getPhone());
+        CompanyInfoDto company = saved.getCompanyId() != null
+                ? companyClient.getCompanyById(saved.getCompanyId())
+                : null;
 
-        if (user.getCompanyId() != null) {
-            CompanyInfoDto companyInfo = companyClient.getCompanyById(user.getCompanyId());
-            event.setCompanyId(companyInfo.getId());
-            event.setCompanyName(companyInfo.getName());
-        }
+        UserEvent event = (company != null)
+                ? userEventMapper.toEvent(saved, company)
+                : userEventMapper.toEvent(saved);
         event.setType(UserEvent.EventType.CREATED);
 
         userEventProducer.sendCompanyEvent("company-events", event);
 
-        return userMapper.toDto(
-                saved,
-                event.getCompanyId() != null ? companyClient.getCompanyById(user.getCompanyId()) : null);
+        return userMapper.toDto(saved, company);
     }
 
     /**
@@ -97,25 +93,18 @@ public class UserServiceImpl implements UserService {
 
         User updated = userRepository.save(existing);
 
-        UserEvent event = new UserEvent();
-        event.setUserId(updated.getId());
-        event.setFirstName(updated.getFirstName());
-        event.setLastName(updated.getLastName());
-        event.setPhone(updated.getPhone());
+        CompanyInfoDto company = updated.getCompanyId() != null
+                ? companyClient.getCompanyById(updated.getCompanyId())
+                : null;
 
-        if (userDto.getCompany() != null && userDto.getCompany().getId() != null) {
-            event.setCompanyId(userDto.getCompany().getId());
-            event.setCompanyName(userDto.getCompany().getName());
-        }
-
+        UserEvent event = (company != null)
+                ? userEventMapper.toEvent(updated, company)
+                : userEventMapper.toEvent(updated);
         event.setType(UserEvent.EventType.UPDATED);
 
         userEventProducer.sendCompanyEvent("company-events", event);
 
-        return userMapper.toDto(
-                updated,
-                event.getCompanyId() != null ? companyClient.getCompanyById(existing.getCompanyId()) : null
-        );
+        return userMapper.toDto(updated, company);
     }
 
     /**
@@ -183,8 +172,7 @@ public class UserServiceImpl implements UserService {
         User user = userRepository.findById(id)
                 .orElseThrow(() -> new UserNotFoundException("User with id " + id + " not found"));
 
-        UserEvent event = new UserEvent();
-        event.setUserId(user.getId());
+        UserEvent event = userEventMapper.toDeleteEvent(user);
         event.setType(UserEvent.EventType.DELETED);
 
         userEventProducer.sendCompanyEvent("company-events", event);
@@ -205,17 +193,15 @@ public class UserServiceImpl implements UserService {
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     public void syncUserFromCompany(UUID userId, String firstName, String lastName, String phone, UUID companyId) {
         userRepository.findById(userId).ifPresentOrElse(user -> {
-            user.setFirstName(firstName);
-            user.setLastName(lastName);
-            user.setPhone(phone);
-            user.setCompanyId(companyId);
+            userMapper.updateUserFromEvent(firstName, lastName, phone, companyId, user);
             userRepository.saveAndFlush(user);
         }, () -> {
-            User newUser = new User();
-            newUser.setFirstName(firstName);
-            newUser.setLastName(lastName);
-            newUser.setPhone(phone);
-            newUser.setCompanyId(companyId);
+            User newUser = User.builder()
+                    .firstName(firstName)
+                    .lastName(lastName)
+                    .phone(phone)
+                    .companyId(companyId)
+                    .build();
             userRepository.saveAndFlush(newUser);
         });
     }

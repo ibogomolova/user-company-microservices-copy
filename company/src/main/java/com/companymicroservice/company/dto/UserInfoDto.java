@@ -1,5 +1,6 @@
 package com.companymicroservice.company.dto;
 
+import com.companymicroservice.company.validation.ValidUserInfo;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Pattern;
@@ -18,19 +19,10 @@ import java.util.UUID;
 @AllArgsConstructor
 @NoArgsConstructor
 @JsonIgnoreProperties(ignoreUnknown = true)
+@ValidUserInfo
 public class UserInfoDto {
-
     private UUID id;
-
-    @NotBlank(message = "Имя пользователя обязательно")
-    @Size(max = 50, message = "Имя пользователя не должно превышать 50 символов")
     private String firstName;
-
-    @NotBlank(message = "Фамилия пользователя обязательна")
-    @Size(max = 255, message = "Фамилия пользователя не должна превышать 50 символов")
     private String lastName;
-
-    @NotBlank(message = "Телефон обязателен")
-    @Pattern(regexp = "^\\+\\d{10,15}$", message = "Телефон должен быть в формате +3737777890")
     private String phone;
 }

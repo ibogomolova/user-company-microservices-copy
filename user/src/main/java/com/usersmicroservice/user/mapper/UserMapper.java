@@ -5,6 +5,9 @@ import com.usersmicroservice.user.dto.UserDto;
 import com.usersmicroservice.user.entity.User;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
+import org.mapstruct.MappingTarget;
+
+import java.util.UUID;
 
 /**
  * Mapper для преобразования между сущностью {@link com.usersmicroservice.user.entity.User}
@@ -32,4 +35,12 @@ public interface UserMapper {
      */
     @Mapping(target = "companyId", ignore = true)
     User toEntity(UserDto userDto);
+
+
+    @Mapping(target = "id", ignore = true) // если создаем нового
+    @Mapping(target = "companyId", source = "companyId")
+    @Mapping(target = "firstName", source = "firstName")
+    @Mapping(target = "lastName", source = "lastName")
+    @Mapping(target = "phone", source = "phone")
+    void updateUserFromEvent(String firstName, String lastName, String phone, UUID companyId, @MappingTarget User user);
 }

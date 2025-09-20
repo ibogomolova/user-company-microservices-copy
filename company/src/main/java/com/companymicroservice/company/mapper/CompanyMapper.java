@@ -5,6 +5,7 @@ import com.companymicroservice.company.dto.UserInfoDto;
 import com.companymicroservice.company.entity.Company;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
+import org.mapstruct.MappingTarget;
 
 import java.util.List;
 
@@ -32,4 +33,11 @@ public interface CompanyMapper {
      * @return сущность компании
      */
     Company toEntity(CompanyDto dto);
+
+    /**
+     * Обновляет данные существующей сущности из DTO.
+     */
+    @Mapping(target = "id", ignore = true)
+    @Mapping(target = "userIds", ignore = true)
+    void updateEntityFromDto(CompanyDto dto, @MappingTarget Company entity);
 }
