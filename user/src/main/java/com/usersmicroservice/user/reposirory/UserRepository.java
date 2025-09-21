@@ -7,10 +7,6 @@ import org.springframework.stereotype.Repository;
 import java.util.List;
 import java.util.UUID;
 
-/**
- * Репозиторий для работы с сущностью {@link com.usersmicroservice.user.entity.User}.
- * Использует Spring Data JPA для доступа к данным.
- */
 @Repository
 public interface UserRepository extends JpaRepository<User, UUID> {
     List<User> findByCompanyId(UUID companyId);

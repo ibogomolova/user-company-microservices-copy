@@ -1,23 +1,17 @@
 package com.usersmicroservice.user.entity;
 
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 
 import java.util.Objects;
 import java.util.UUID;
 
-/**
- * Сущность пользователя.
- * Хранится в таблице "users".
- */
 @Entity
 @AllArgsConstructor
 @NoArgsConstructor
 @Getter
 @Setter
+@Builder
 @Table(name = "users")
 public class User {
 
@@ -34,7 +28,6 @@ public class User {
     @Column(nullable = false)
     private String phone;
 
-    /** Идентификатор компании, к которой принадлежит пользователь */
     @Column(name = "company_id")
     private UUID companyId;
 

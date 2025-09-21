@@ -1,14 +1,15 @@
 package com.companymicroservice.company.service;
 
 import com.companymicroservice.company.dto.CompanyDto;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 
-import java.util.List;
 import java.util.UUID;
 
 public interface CompanyService {
     CompanyDto getCompanyById(UUID id);
 
-    List<CompanyDto> getAllCompanies();
+    Page<CompanyDto> getAllCompanies(Pageable pageable);
 
     CompanyDto createCompany(CompanyDto dto);
 

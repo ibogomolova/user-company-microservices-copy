@@ -11,17 +11,12 @@ import java.util.UUID;
 /**
  * Feign-клиент для взаимодействия с микросервисом пользователей.
  * <p>
- * Используется в микросервисе компаний для получения списка сотрудников по ID компании.
+ * Позволяет получать пользователей по ID компании и по индивидуальному ID.
+ * Используется для синхронизации данных пользователей при работе с компаниями.
  */
 @FeignClient(name = "user-service", url = "${user.service.url}")
 public interface UserClient {
 
-    /**
-     * Получает список пользователей по ID компании.
-     *
-     * @param companyId уникальный идентификатор компании
-     * @return список пользователей, работающих в компании
-     */
     @GetMapping("/users/by-company/{companyId}")
     List<UserInfoDto> getUsersByCompany(@PathVariable UUID companyId);
 

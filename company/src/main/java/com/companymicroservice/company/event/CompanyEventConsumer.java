@@ -4,6 +4,7 @@ import com.companymicroservice.company.service.CompanyService;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.stereotype.Component;
 
@@ -17,6 +18,7 @@ import java.util.UUID;
  * - обновление;
  * - удаление.
  */
+@Slf4j
 @Component
 @RequiredArgsConstructor
 public class CompanyEventConsumer {
@@ -31,22 +33,26 @@ public class CompanyEventConsumer {
      */
     @KafkaListener(topics = "company-events", groupId = "company-group")
     public void consumeUserEvent(String message) {
+        log.debug("Получено сообщение из Kafka: {}", message);
         try {
             UserEventData eventData = objectMapper.readValue(message, UserEventData.class);
 
             switch (eventData.type) {
                 case "CREATED":
                 case "UPDATED":
+                    log.info("Обработка события {}: userId={}, companyId={}", eventData.type, eventData.userId, eventData.companyId);
                     companyService.addUserToCompany(eventData.userId, eventData.companyId);
                     break;
                 case "DELETED":
+                    log.info("Обработка события DELETED: userId={}", eventData.userId);
                     companyService.removeUserFromCompany(eventData.userId);
                     break;
                 default:
+                    log.warn("Получен неизвестный тип события: {}", eventData.type);
             }
 
         } catch (Exception e) {
-            e.printStackTrace();
+            log.error("Ошибка при обработке Kafka-сообщения: {}", message, e);
         }
     }
 

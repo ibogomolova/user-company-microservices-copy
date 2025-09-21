@@ -2,7 +2,10 @@ package com.usersmicroservice.user.controller;
 
 import com.usersmicroservice.user.dto.UserDto;
 import com.usersmicroservice.user.service.UserService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -21,18 +24,19 @@ public class UserController {
     private final UserService userService;
 
     @PostMapping
-    public ResponseEntity<UserDto> create(@RequestBody UserDto dto) {
-        return ResponseEntity.ok(userService.create(dto));
+    public UserDto create(@RequestBody @Valid UserDto dto) {
+        return userService.create(dto);
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<UserDto> update(@PathVariable UUID id, @RequestBody UserDto dto) {
-        return ResponseEntity.ok(userService.update(id, dto));
+    public UserDto update(@PathVariable UUID id,
+                          @RequestBody @Valid UserDto dto) {
+        return userService.update(id, dto);
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<UserDto> getById(@PathVariable UUID id) {
-        return ResponseEntity.ok(userService.getById(id));
+    public UserDto getById(@PathVariable UUID id) {
+        return userService.getById(id);
     }
 
     @GetMapping("/by-company/{companyId}")
@@ -41,8 +45,9 @@ public class UserController {
     }
 
     @GetMapping
-    public ResponseEntity<List<UserDto>> getAll() {
-        return ResponseEntity.ok(userService.getAll());
+    public Page<UserDto> getAll(@RequestParam(defaultValue = "0") int page,
+                                @RequestParam(defaultValue = "10") int size) {
+        return userService.getAll(PageRequest.of(page, size));
     }
 
     @DeleteMapping("/{id}")

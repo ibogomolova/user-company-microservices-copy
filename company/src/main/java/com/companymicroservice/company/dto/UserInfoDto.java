@@ -1,5 +1,6 @@
 package com.companymicroservice.company.dto;
 
+import com.companymicroservice.company.validation.ValidUserInfo;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -15,6 +16,7 @@ import java.util.UUID;
 @AllArgsConstructor
 @NoArgsConstructor
 @JsonIgnoreProperties(ignoreUnknown = true)
+@ValidUserInfo
 public class UserInfoDto {
     private UUID id;
     private String firstName;

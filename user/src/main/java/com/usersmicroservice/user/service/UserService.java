@@ -1,6 +1,8 @@
 package com.usersmicroservice.user.service;
 
 import com.usersmicroservice.user.dto.UserDto;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 
 import java.util.List;
 import java.util.UUID;
@@ -14,7 +16,7 @@ public interface UserService {
 
     List<UserDto> getUsersByCompanyId(UUID companyId);
 
-    List<UserDto> getAll();
+    Page<UserDto> getAll(Pageable pageable);
 
     void delete(UUID id);
 
