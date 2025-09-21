@@ -1,0 +1,38 @@
+databaseChangeLog:
+  - changeSet:
+      id: 1
+      author: bogomolova
+      changes:
+        - createTable:
+            tableName: users
+            columns:
+              - column:
+                  name: id
+                  type: UUID
+                  constraints:
+                    primaryKey: true
+              - column:
+                  name: first_name
+                  type: VARCHAR(255)
+              - column:
+                  name: last_name
+                  type: VARCHAR(255)
+              - column:
+                  name: phone
+                  type: VARCHAR(50)
+              - column:
+                  name: company_id
+                  type: UUID
+
+  - changeSet:
+      id: 2
+      author: bogomolova
+      changes:
+        - modifyDataType:
+            tableName: users
+            columnName: first_name
+            newDataType: VARCHAR(50)
+        - modifyDataType:
+            tableName: users
+            columnName: last_name
+            newDataType: VARCHAR(50)
