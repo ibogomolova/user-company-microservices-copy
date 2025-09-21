@@ -6,6 +6,11 @@ import com.usersmicroservice.user.event.UserEvent;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 
+/**
+ * Mapper для преобразования данных пользователей и компаний в события {@link UserEvent}.
+ * <p>
+ * Используется для отправки событий через Kafka при изменении компаний и пользователей.
+ */
 @Mapper(componentModel = "spring")
 public interface UserEventMapper {
 

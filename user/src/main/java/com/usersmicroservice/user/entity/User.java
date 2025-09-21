@@ -6,10 +6,6 @@ import lombok.*;
 import java.util.Objects;
 import java.util.UUID;
 
-/**
- * Сущность пользователя.
- * Хранится в таблице "users".
- */
 @Entity
 @AllArgsConstructor
 @NoArgsConstructor
@@ -32,7 +28,6 @@ public class User {
     @Column(nullable = false)
     private String phone;
 
-    /** Идентификатор компании, к которой принадлежит пользователь */
     @Column(name = "company_id")
     private UUID companyId;
 

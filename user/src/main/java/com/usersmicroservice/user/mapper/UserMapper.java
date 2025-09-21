@@ -16,28 +16,14 @@ import java.util.UUID;
 @Mapper(componentModel = "spring")
 public interface UserMapper {
 
-    /**
-     * Преобразует сущность User в DTO.
-     *
-     * @param user сущность пользователя
-     * @param companyInfo информация о компании
-     * @return DTO пользователя
-     */
     @Mapping(target = "company", source = "companyInfo")
     @Mapping(target = "id", source = "user.id")
     UserDto toDto(User user, CompanyInfoDto companyInfo);
 
-    /**
-     * Преобразует DTO пользователя в сущность.
-     *
-     * @param userDto DTO пользователя
-     * @return сущность пользователя
-     */
     @Mapping(target = "companyId", ignore = true)
     User toEntity(UserDto userDto);
 
-
-    @Mapping(target = "id", ignore = true) // если создаем нового
+    @Mapping(target = "id", ignore = true)
     @Mapping(target = "companyId", source = "companyId")
     @Mapping(target = "firstName", source = "firstName")
     @Mapping(target = "lastName", source = "lastName")

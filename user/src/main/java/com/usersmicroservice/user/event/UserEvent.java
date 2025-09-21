@@ -22,8 +22,5 @@ public class UserEvent {
     private String companyName;
     private EventType type;
 
-    /**
-     * Тип события: создание, обновление или удаление.
-     */
-    public enum EventType { CREATED, UPDATED, DELETED }
+    public enum EventType {CREATED, UPDATED, DELETED}
 }

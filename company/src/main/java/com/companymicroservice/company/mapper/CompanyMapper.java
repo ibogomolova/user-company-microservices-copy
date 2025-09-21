@@ -16,27 +16,12 @@ import java.util.List;
 @Mapper(componentModel = "spring")
 public interface CompanyMapper {
 
-    /**
-     * Преобразует сущность компании в DTO.
-     *
-     * @param company      сущность компании
-     * @param userInfoList список пользователей компании
-     * @return DTO компании
-     */
     @Mapping(target = "users", source = "userInfoList")
     CompanyDto toDto(Company company, List<UserInfoDto> userInfoList);
 
-    /**
-     * Преобразует DTO компании в сущность.
-     *
-     * @param dto DTO компании
-     * @return сущность компании
-     */
+    @Mapping(target = "userIds", ignore = true)
     Company toEntity(CompanyDto dto);
 
-    /**
-     * Обновляет данные существующей сущности из DTO.
-     */
     @Mapping(target = "id", ignore = true)
     @Mapping(target = "userIds", ignore = true)
     void updateEntityFromDto(CompanyDto dto, @MappingTarget Company entity);

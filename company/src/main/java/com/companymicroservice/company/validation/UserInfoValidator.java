@@ -6,7 +6,16 @@ import jakarta.validation.ConstraintValidatorContext;
 
 import java.util.regex.Pattern;
 
-
+/**
+ * Валидатор для {@link UserInfoDto}.
+ * <p>
+ * Проверяет корректность данных пользователя:
+ * - Если указан {@code id}, поля {@code firstName}, {@code lastName} и {@code phone} нельзя передавать;
+ * - Проверяет обязательность {@code firstName}, {@code lastName} и {@code phone} для новых пользователей;
+ * - Имя и фамилия должны начинаться с большой буквы и содержать только буквы;
+ * - Максимальная длина имени и фамилии — {@code MAX_NAME_LEN};
+ * - Телефон должен быть в формате +3737777890 и содержать 10–15 цифр.
+ */
 public class UserInfoValidator implements ConstraintValidator<ValidUserInfo, UserInfoDto> {
 
     private static final Pattern PHONE_REGEX = Pattern.compile("^\\+\\d{10,15}$");
@@ -27,8 +36,10 @@ public class UserInfoValidator implements ConstraintValidator<ValidUserInfo, Use
             boolean hasExtra = firstName != null || lastName != null || phone != null;
             if (hasExtra) {
 
-                if (firstName != null) addFieldViolation(context, "firstName", "Нельзя передавать firstName, если указан id");
-                if (lastName != null) addFieldViolation(context, "lastName", "Нельзя передавать lastName, если указан id");
+                if (firstName != null)
+                    addFieldViolation(context, "firstName", "Нельзя передавать firstName, если указан id");
+                if (lastName != null)
+                    addFieldViolation(context, "lastName", "Нельзя передавать lastName, если указан id");
                 if (phone != null) addFieldViolation(context, "phone", "Нельзя передавать phone, если указан id");
                 return false;
             }

@@ -8,6 +8,11 @@ import org.mapstruct.Mapping;
 
 import java.util.UUID;
 
+/**
+ * Mapper для преобразования данных пользователей и компаний в события {@link CompanyEvent}.
+ * <p>
+ * Используется для отправки событий через Kafka при изменении компаний и пользователей.
+ */
 @Mapper(componentModel = "spring")
 public interface CompanyEventMapper {
 

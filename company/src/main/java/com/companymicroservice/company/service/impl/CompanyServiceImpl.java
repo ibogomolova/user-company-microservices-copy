@@ -12,6 +12,7 @@ import com.companymicroservice.company.mapper.CompanyMapper;
 import com.companymicroservice.company.repository.CompanyRepository;
 import com.companymicroservice.company.service.CompanyService;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -21,7 +22,6 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
-import java.util.stream.Collectors;
 
 /**
  * Реализация сервиса компаний.
@@ -31,6 +31,7 @@ import java.util.stream.Collectors;
  * - синхронизацию пользователей через Kafka;
  * - управление связями пользователей и компаний.
  */
+@Slf4j
 @Service
 @RequiredArgsConstructor
 @Transactional
@@ -50,11 +51,9 @@ public class CompanyServiceImpl implements CompanyService {
     @Override
     @Transactional(readOnly = true)
     public Page<CompanyDto> getAllCompanies(Pageable pageable) {
+        log.debug("Запрос списка компаний, page={}, size={}", pageable.getPageNumber(), pageable.getPageSize());
         return companyRepository.findAll(pageable)
-                .map(company -> {
-                    List<UserInfoDto> users = userClient.getUsersByCompany(company.getId());
-                    return companyMapper.toDto(company, users);
-                });
+                .map(company -> companyMapper.toDto(company, getUsersForCompany(company.getId())));
     }
 
     /**
@@ -67,10 +66,9 @@ public class CompanyServiceImpl implements CompanyService {
     @Override
     @Transactional(readOnly = true)
     public CompanyDto getCompanyById(UUID id) {
-        Company company = companyRepository.findById(id)
-                .orElseThrow(() -> new CompanyNotFoundException("Company with id " + id + " not found"));
-        List<UserInfoDto> users = userClient.getUsersByCompany(company.getId());
-        return companyMapper.toDto(company, users);
+        log.debug("Запрос компании по id={}", id);
+        Company company = getCompanyOrThrow(id);
+        return companyMapper.toDto(company, getUsersForCompany(company.getId()));
     }
 
     /**
@@ -82,30 +80,12 @@ public class CompanyServiceImpl implements CompanyService {
      */
     @Override
     public CompanyDto createCompany(CompanyDto companyDto) {
+        log.info("Создание компании: {}", companyDto.getName());
         Company company = companyMapper.toEntity(companyDto);
         Company saved = companyRepository.save(company);
 
-        List<UserInfoDto> users = new ArrayList<>();
-        if (companyDto.getUsers() != null) {
-            users = companyDto.getUsers().stream().map(user -> {
-                UserInfoDto fullUser;
-                if (user.getId() != null) {
-                    try {
-                        fullUser = userClient.getUserById(user.getId());
-                    } catch (Exception e) {
-                        fullUser = user;
-                    }
-                } else {
-                    user.setId(UUID.randomUUID());
-                    fullUser = user;
-                }
-                CompanyEvent event = companyEventMapper.toEvent(fullUser, saved);
-                event.setType(CompanyEvent.EventType.CREATED);
-
-                eventProducer.sendUserEvent("user-events", event);
-                return fullUser;
-            }).collect(Collectors.toList());
-        }
+        List<UserInfoDto> users = processUsers(companyDto.getUsers(), saved, CompanyEvent.EventType.CREATED);
+        log.info("Компания создана: id={}, name={}", saved.getId(), saved.getName());
         return companyMapper.toDto(saved, users);
     }
 
@@ -119,35 +99,14 @@ public class CompanyServiceImpl implements CompanyService {
      */
     @Override
     public CompanyDto updateCompany(UUID id, CompanyDto companyDto) {
-        Company company = companyRepository.findById(id)
-                .orElseThrow(() -> new CompanyNotFoundException("Company with id " + id + " not found"));
-
+        log.info("Обновление компании: id={}", id);
+        Company company = getCompanyOrThrow(id);
         companyMapper.updateEntityFromDto(companyDto, company);
 
         Company updated = companyRepository.save(company);
 
-        List<UserInfoDto> users = new ArrayList<>();
-        if (companyDto.getUsers() != null) {
-            users = companyDto.getUsers().stream().map(user -> {
-                UserInfoDto fullUser;
-                if (user.getId() != null) {
-                    try {
-                        fullUser = userClient.getUserById(user.getId());
-                    } catch (Exception e) {
-                        fullUser = user;
-                    }
-                } else {
-                    user.setId(UUID.randomUUID());
-                    fullUser = user;
-                }
-                CompanyEvent event = companyEventMapper.toEvent(fullUser, updated);
-                event.setType(CompanyEvent.EventType.UPDATED);
-
-                eventProducer.sendUserEvent("user-events", event);
-
-                return fullUser;
-            }).collect(Collectors.toList());
-        }
+        List<UserInfoDto> users = processUsers(companyDto.getUsers(), updated, CompanyEvent.EventType.UPDATED);
+        log.info("Компания обновлена: id={}", updated.getId());
         return companyMapper.toDto(updated, users);
     }
 
@@ -160,17 +119,14 @@ public class CompanyServiceImpl implements CompanyService {
      */
     @Override
     public void deleteCompany(UUID id) {
-        Company company = companyRepository.findById(id)
-                .orElseThrow(() -> new CompanyNotFoundException("Company with id " + id + " not found"));
+        log.warn("Удаление компании id={}", id);
+        Company company = getCompanyOrThrow(id);
 
         if (company.getUserIds() != null) {
-            company.getUserIds().forEach(userId -> {
-                CompanyEvent event = companyEventMapper.toDeleteEvent(userId, company);
-                event.setType(CompanyEvent.EventType.DELETED);
-                eventProducer.sendUserEvent("user-events", event);
-            });
+            company.getUserIds().forEach(userId -> sendUserDeletionEvent(userId, company));
         }
         companyRepository.deleteById(id);
+        log.info("Компания удалена id={}", id);
     }
 
     /**
@@ -182,8 +138,8 @@ public class CompanyServiceImpl implements CompanyService {
      */
     @Override
     public void addUserToCompany(UUID userId, UUID companyId) {
-        Company company = companyRepository.findById(companyId)
-                .orElseThrow(() -> new CompanyNotFoundException("Company with id " + companyId + " not found"));
+        log.debug("Добавление пользователя {} в компанию {}", userId, companyId);
+        Company company = getCompanyOrThrow(companyId);
 
         if (company.getUserIds() == null) {
             company.setUserIds(new ArrayList<>());
@@ -191,6 +147,9 @@ public class CompanyServiceImpl implements CompanyService {
         if (!company.getUserIds().contains(userId)) {
             company.getUserIds().add(userId);
             companyRepository.saveAndFlush(company);
+            log.info("Пользователь {} добавлен в компанию {}", userId, companyId);
+        } else {
+            log.debug("Пользователь {} уже есть в компании {}", userId, companyId);
         }
     }
 
@@ -201,13 +160,68 @@ public class CompanyServiceImpl implements CompanyService {
      */
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     public void removeUserFromCompany(UUID userId) {
-        List<Company> companiesWithUser = companyRepository.findAll().stream()
+        log.warn("Удаление пользователя {} из всех компаний", userId);
+        companyRepository.findAll().stream()
                 .filter(company -> company.getUserIds() != null && company.getUserIds().contains(userId))
-                .toList();
+                .forEach(company -> {
+                    company.getUserIds().remove(userId);
+                    companyRepository.saveAndFlush(company);
+                    log.info("Пользователь {} удалён из компании {}", userId, company.getId());
+                });
+    }
 
-        for (Company company : companiesWithUser) {
-            company.getUserIds().remove(userId);
-            companyRepository.saveAndFlush(company);
+    private Company getCompanyOrThrow(UUID id) {
+        return companyRepository.findById(id)
+                .orElseThrow(() -> new CompanyNotFoundException("Company with id " + id + " not found"));
+    }
+
+    private List<UserInfoDto> getUsersForCompany(UUID companyId) {
+        try {
+            return userClient.getUsersByCompany(companyId);
+        } catch (Exception e) {
+            log.error("Не удалось получить пользователей для компании {}", companyId, e);
+            return new ArrayList<>();
         }
+    }
+
+    private List<UserInfoDto> processUsers(List<UserInfoDto> users,
+                                           Company company,
+                                           CompanyEvent.EventType eventType) {
+        List<UserInfoDto> result = new ArrayList<>();
+        if (users == null) return result;
+
+        for (UserInfoDto user : users) {
+            UserInfoDto fullUser = fetchOrCreateUser(user);
+            sendUserEvent(fullUser, company, eventType);
+            result.add(fullUser);
+        }
+        return result;
+    }
+
+    private UserInfoDto fetchOrCreateUser(UserInfoDto user) {
+        if (user.getId() != null) {
+            try {
+                return userClient.getUserById(user.getId());
+            } catch (Exception e) {
+                return user;
+            }
+        } else {
+            user.setId(UUID.randomUUID());
+            return user;
+        }
+    }
+
+    private void sendUserEvent(UserInfoDto user, Company company, CompanyEvent.EventType type) {
+        log.debug("Отправка события {} для пользователя {} в компанию {}", type, user.getId(), company.getId());
+        CompanyEvent event = companyEventMapper.toEvent(user, company);
+        event.setType(type);
+        eventProducer.sendUserEvent("user-events", event);
+    }
+
+    private void sendUserDeletionEvent(UUID userId, Company company) {
+        log.debug("Отправка события удаления пользователя {} из компании {}", userId, company.getId());
+        CompanyEvent event = companyEventMapper.toDeleteEvent(userId, company);
+        event.setType(CompanyEvent.EventType.DELETED);
+        eventProducer.sendUserEvent("user-events", event);
     }
 }

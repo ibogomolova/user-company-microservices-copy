@@ -3,6 +3,7 @@ package com.companymicroservice.company.event;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Component;
 
@@ -11,6 +12,7 @@ import org.springframework.stereotype.Component;
  * <p>
  * Отправляет события о пользователях в указанный топик Kafka.
  */
+@Slf4j
 @Component
 @RequiredArgsConstructor
 public class CompanyEventProducer {
@@ -28,7 +30,9 @@ public class CompanyEventProducer {
         try {
             String json = objectMapper.writeValueAsString(event);
             kafkaTemplate.send(topic, json);
+            log.debug("Событие отправлено в Kafka: topic={}, eventType={}, userId={}", topic, event.getType(), event.getUserId());
         } catch (JsonProcessingException e) {
+            log.error("Ошибка сериализации Kafka-сообщения: {}", event, e);
             throw new RuntimeException("Failed to send Kafka message", e);
         }
     }
